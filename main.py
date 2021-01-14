@@ -2,16 +2,16 @@ import argparse
 import io
 import csv
 
+
+
 def parseFile(fileIn):
     file = open(fileIn, "rb")
 
     sig = file.read(0x05)
     length = file.read(0x02)
 
-    data = io.BytesIO(file.read(int.from_bytes(length, byteorder="big")))
-
-    data.seek(0x06)
-    stringNumber = int.from_bytes(data.read(0x02), byteorder="big")
+    file.seek(0x06, io.SEEK_CUR)
+    stringNumber = int.from_bytes(file.read(0x02), byteorder="big")
 
     print(fileIn)
     print("Strings : {0:x}".format(stringNumber)) 
@@ -20,11 +20,12 @@ def parseFile(fileIn):
     strings = []
 
     while i < stringNumber:
-        size = int.from_bytes(data.read(0x02), byteorder="big")
-        string = data.read(size)
+        size = int.from_bytes(file.read(0x02), byteorder="big")
+        string = file.read(size)
         strings.append([string.decode("utf8").replace("\n", "").replace("\t", "\\t"), ""])
         i += 1
 
+    strings.append(["TEXT TO TRANSLATE IS ABOVE THIS LINE", ""])
     fileOut = open(fileIn+".csv", "w", newline="")
 
     writer = csv.writer(fileOut)
